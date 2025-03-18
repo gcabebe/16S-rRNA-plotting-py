@@ -11,7 +11,7 @@ import seaborn as sns
 from scipy.spatial.distance import pdist, squareform
 from scipy.sparse import csr_matrix
 from scipy.stats import ttest_ind, mannwhitneyu
-from sklearn.metrics import pairwise_distances
+from sklearn.metrics import jaccard_score, pairwise_distances
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA
 import networkx as nx
@@ -225,6 +225,47 @@ def combine_same_asv_groups(asv_data):
 ########################## SINGLE NETWORK PLOTTING FUNCTION ##############################
 ####################################################################################
 
+def compute_jaccard_similarity_matrix(graphs):
+    """
+    Compute the Jaccard similarity matrix for multiple NetworkX graphs.
+
+    Parameters:
+        graphs (list): List of networkx.Graph objects.
+
+    Returns:
+        pd.DataFrame: DataFrame containing pairwise Jaccard similarity scores.
+    """
+    num_graphs = len(graphs)
+    adj_matrices = [nx.to_numpy_array(G) for G in graphs]
+
+    # Convert adjacency matrices to binary (1 for connected, 0 for not connected)
+    adj_matrices = [(adj > 0).astype(int) for adj in adj_matrices]
+
+    # Find max size for padding
+    max_size = max(adj.shape[0] for adj in adj_matrices)
+
+    # Pad adjacency matrices to the same size
+    adj_matrices = [np.pad(adj, ((0, max_size - adj.shape[0]), (0, max_size - adj.shape[1])), mode='constant')
+                    for adj in adj_matrices]
+
+    # Flatten adjacency matrices
+    vectors = [adj.flatten() for adj in adj_matrices]
+
+    # Compute Jaccard similarities
+    similarity_matrix = np.zeros((num_graphs, num_graphs))
+    for i in range(num_graphs):
+        for j in range(i, num_graphs):  # Compute only upper triangle (matrix is symmetric)
+            similarity = jaccard_score(vectors[i], vectors[j], average='binary')
+            similarity_matrix[i, j] = similarity
+            similarity_matrix[j, i] = similarity  # Copy to lower triangle
+
+    # Convert to DataFrame for better visualization
+    graph_labels = [f"Graph {i+1}" for i in range(num_graphs)]
+    similarity_df = pd.DataFrame(similarity_matrix, index=graph_labels, columns=graph_labels)
+    
+    return similarity_df
+
+
 
 def create_network_plots(path, df_list):
     """
@@ -244,10 +285,12 @@ def create_network_plots(path, df_list):
         if i%2 == 0:
             print("--- GENUS ---")
             sys.stdout.flush()
+            G_list = []
         else:
             print("--- SPECIES ---")
             sys.stdout.flush()
-        
+            G_list = []
+            
         # Initialize a dataframe with topological features
         # At each iteration of the below for loop, add new columns
         topological_feat_df = pd.DataFrame({
@@ -513,17 +556,25 @@ def create_network_plots(path, df_list):
                 
 #                 plt.show()
                 plt.close()
-#         display(topological_feat_df)
+                
+                G_list.append(G)
+                
+        # display(topological_feat_df)
         # Save the topological dataframe
         if i%2 == 0: # name it with 'Genus'
             topological_feat_df.to_csv(f"{path}/results/network_Topology_Nextflow_Genus.csv", index=False)
+            # Compute Jaccard Index with all genus-level networkx graphs
+            similarity_df = compute_jaccard_similarity_matrix(G_list)
+            similarity_df.to_csv(f"{path}/results/network_JaccardIndex_Nextflow_Genus.csv", index=True)
         else: # name it with 'Species'
             topological_feat_df.to_csv(f"{path}/results/network_Topology_Nextflow_Species.csv", index=False)
+            similarity_df = compute_jaccard_similarity_matrix(G_list)
+            similarity_df.to_csv(f"{path}/results/network_JaccardIndex_Nextflow_Species.csv", index=True)
             
         i += 1
 
     print("")
-    print("Finished generating network plots (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧")
+    print("Finished generating network plots and their data tables (ﾉ◕ヮ◕)ﾉ*:･ﾟ✧")
     print("")
     sys.stdout.flush()
 
