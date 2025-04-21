@@ -1,6 +1,7 @@
+> [!NOTE]
+> This repository is currently a work in progress. Please check back later for the updated README file, code and manuscript link.
+
 # Summary
-$${\color{aqua}This \space repository \space is \space currently \space a \space work \space in \space progress. \space Please \space check \space back \space later \space for \space the \space updated \space README \space file, \space code \space and \space manuscript \space :>}$$
- 
 This repository provides an executable script for generating visualizations from processed amplicon data extracted from bacteria and archaea. Visualizations will analyze each bacteria and archaea in isolation, as well as the interactions between the two.
 
 **Inputs**
