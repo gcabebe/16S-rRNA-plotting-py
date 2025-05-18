@@ -1,3 +1,4 @@
+from process_data import select_asv_columns
 import random
 import sys
 import re
@@ -115,7 +116,7 @@ def create_taxa_barplot(df_list, path):
             ax.legend_.remove()
 
         # Save to the results folder
-        Path(f"{path}/results_v2").mkdir(parents=True, exist_ok=True)
+        Path(f"{path}/results").mkdir(parents=True, exist_ok=True)
 
         # Customize plot
         plt.ylabel("Relative Abundance", fontweight='bold')
@@ -124,7 +125,28 @@ def create_taxa_barplot(df_list, path):
             tick.set_fontweight("bold")
         plt.title("Taxa Relative Abundance Across Samples", fontweight='bold')
         plt.tight_layout()
-        plt.savefig(f"{path}/results_v2/taxa_barplot_{taxa_level}_reordered.png", bbox_inches="tight", dpi=300)
+        plt.savefig(f"{path}/results_data/taxa_barplot_{taxa_level}_reordered.png", bbox_inches="tight", dpi=300)
         plt.close()
 
         i += 1
+
+
+def create_correlation_heatmap(cor_matrix, taxa_level, metadata_value, path):
+    safe_metadata_value = metadata_value.replace(" ", "_")
+
+    #     plt.figure(figsize=(10, 8))
+    #     # define the mask to set the values in the upper triangle to True
+    #     mask = np.triu(np.ones_like(cor_matrix, dtype=bool))
+    #     heatmap = sns.heatmap(cor_matrix, mask=mask, cmap='RdBu')
+
+    #     heatmap.set_title(f'Correlation Heatmap - {metadata_value} on {taxa_level} Level', fontdict={'fontsize':9}, pad=9)
+    # #     plt.savefig(f"{path}/results_data/heatmap_Nextflow_{taxa_level}_{metadata_value}.png", bbox_inches="tight", dpi=300)
+    #     plt.show()
+    #     plt.close()
+
+    # Save to the results folder
+    Path(f"{path}/results").mkdir(parents=True, exist_ok=True)
+
+    clustermap = sns.clustermap(cor_matrix, method="complete", cmap='RdBu', annot_kws={"size": 5}, figsize=(15, 12))
+    plt.savefig(f"{path}/results_data/clustermap_Nextflow_{taxa_level}_{safe_metadata_value}.png", bbox_inches="tight",
+                dpi=300)

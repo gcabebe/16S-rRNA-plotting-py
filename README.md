@@ -1,6 +1,3 @@
-> [!NOTE]
-> This repository is currently a work in progress. Please check back later for the updated README file, code and manuscript link.
-
 # Summary
 This repository provides an executable script for generating visualizations from processed amplicon data extracted from bacteria and archaea. Visualizations will analyze each bacteria and archaea in isolation, as well as the interactions between the two.
 
@@ -18,7 +15,7 @@ This repository provides an executable script for generating visualizations from
 -  PcoA plots using Bray-Curtis distances
 
 # Setup
-The python code is run through a shell script. If using Windows, download [Git for Windows](https://gitforwindows.org/).
+The python code is run through a shell script. If using Windows, use Windows PowerShell or download [Git for Windows](https://gitforwindows.org/). For Mac users use terminal.
 
 The following Python 3 libraries are required:
 - pandas
@@ -31,5 +28,28 @@ The following Python 3 libraries are required:
 - markov_clustering
 - rapidfuzz
 
-# Getting Started
+# Quick Start
+This code assumes the following directory tree structure and file names:
+```
+.
+└── Root Folder/
+    ├── metadata.tsv
+    ├── Bacteria Data/
+    │   ├── feature-table.tsv
+    │   ├── taxonomy.tsv
+    │   ├── qiime_genus.tsv
+    │   └── qiime_specie.tsv
+    └── Archaea Data/
+        ├── feature-table.tsv
+        ├── taxonomy.tsv
+        ├── qiime_genus.tsv
+        └── qiime_specie.tsv
+```
 
+In your terminal run the following:
+
+```bash ./driver_script.sh <path_to_root_folder> <bacteria_folder_name> <archaea_folder_name> ```
+
+- `<path_to_root_folder>`: Absolute or relative path to the root data folder.
+- `<bacteria_folder_name>`: Name of the folder containing bacterial data (e.g., `Bacteria Data`).
+- `<archaea_folder_name>`: Name of the folder containing archaeal data (e.g., `Archaea Data`).

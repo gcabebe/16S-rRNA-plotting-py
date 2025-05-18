@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+
+from process_data import process_tables_qiime, process_tables
+from create_venn_diagram import create_venn_diagram
+from taxa_barplot_heatmap import create_taxa_barplot, create_correlation_heatmap
+from network_plots import create_network_plots
+from boxplots import create_taxa_boxplot, create_alpha_diversity_boxplot
+from pcoa_plots import create_pcoa_plot
+import codecs
+import random
+import sys
+import warnings
+import re
+import os
+from pathlib import Path
+import pandas as pd
+import numpy as np
+import community.community_louvain as community
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import Ellipse
+import matplotlib.colors as mcolors
+from matplotlib_venn import venn2, venn3
+import seaborn as sns
+import distinctipy
+from scipy.spatial.distance import pdist, squareform
+from scipy.sparse import csr_matrix
+from scipy.stats import ttest_ind, mannwhitneyu, permutation_test
+from sklearn.metrics import pairwise_distances
+from sklearn.manifold import MDS
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import MinMaxScaler
+import networkx as nx
+import networkx.algorithms.community as nx_comm
+import markov_clustering as mcl
+from rapidfuzz import process, fuzz
+
+# Ignore all warnings
+warnings.filterwarnings("ignore")
+
+# Ensure standard output uses UTF-8 encoding
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout.buffer)
+sys.stderr = codecs.getwriter("utf-8")(sys.stderr.buffer)
+
+os.chdir(sys.argv[1])
+path_list = [sys.argv[2], sys.argv[3]]
+
+for path in path_list:
+    #### Create results directory if doesn't yet exist ###
+    Path(f"{path}/results_data").mkdir(parents=True, exist_ok=True)
+
+    ### Process tables ###
+    # df_list = process_tables(path)
+    df_list = process_tables_qiime(path)
+
+    ### Create plots ###
+    create_venn_diagram(path)
+    sys.stdout.flush()  # So print statements show up while code is running
+    create_taxa_barplot(df_list, path)
+    sys.stdout.flush()
+    create_network_plots(path, df_list, with_labels=True)
+    sys.stdout.flush()
+    create_taxa_boxplot(path, df_list)
+    sys.stdout.flush()
+    create_alpha_diversity_boxplot(path)
+    sys.stdout.flush()
+    create_pcoa_plot(path, df_list)
