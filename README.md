@@ -14,6 +14,8 @@ This repository provides an executable script for generating visualizations from
 -  Alpha diversity metrics boxplot
 -  PcoA plots using Bray-Curtis distances
 
+---
+
 # Setup
 The python code is run through a shell script. If using Windows, use Windows PowerShell or download [Git for Windows](https://gitforwindows.org/). For Mac users use terminal.
 
@@ -27,6 +29,8 @@ The following Python 3 libraries are required:
 - networkx
 - markov_clustering
 - rapidfuzz
+
+---
 
 # Quick Start
 This code assumes the following directory tree structure and file names:
