@@ -22,7 +22,7 @@ if [ "$#" -ne 3 ]; then
     usage
 fi
 
-# Your actual script logic starts here
+# Actual script logic starts here
 ROOT_PATH=$1  # C:/Users/gebeb/Desktop/Research/16S_rRNA/RM_nextflow/
 BACTERIA_FOLDER=$2  # Nextflow_Ba
 ARCHAEA_FOLDER=$3  # Nextflow_Ar
