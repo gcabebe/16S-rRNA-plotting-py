@@ -36,14 +36,14 @@ The following Python 3 libraries are required:
 This code assumes the following directory tree structure and file names:
 ```
 .
-└── Root Folder/
+└── Root_Folder/
     ├── metadata.tsv
-    ├── Bacteria Data/
+    ├── Bacteria_Data/
     │   ├── feature-table.tsv
     │   ├── taxonomy.tsv
     │   ├── qiime_genus.tsv
     │   └── qiime_specie.tsv
-    └── Archaea Data/
+    └── Archaea_Data/
         ├── feature-table.tsv
         ├── taxonomy.tsv
         ├── qiime_genus.tsv
@@ -52,8 +52,8 @@ This code assumes the following directory tree structure and file names:
 
 In your terminal run the following:
 
-```bash ./driver_script.sh <path_to_root_folder> <bacteria_folder_name> <archaea_folder_name> ```
+```./driver_script.sh <path_to_root_folder> <bacteria_folder_name> <archaea_folder_name> ```
 
 - `<path_to_root_folder>`: Absolute or relative path to the root data folder.
-- `<bacteria_folder_name>`: Name of the folder containing bacterial data (e.g., `Bacteria Data`).
-- `<archaea_folder_name>`: Name of the folder containing archaeal data (e.g., `Archaea Data`).
+- `<bacteria_folder_name>`: Name of the folder containing bacterial data (e.g., `Bacteria_Data`).
+- `<archaea_folder_name>`: Name of the folder containing archaeal data (e.g., `Archaea_Data`).
