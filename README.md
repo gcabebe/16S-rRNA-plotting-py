@@ -48,7 +48,7 @@ This code assumes the following directory tree structure and file names:
 
 In your terminal run the following:
 
-```bash ./driver_script.sh <path_to_root_folder> <bacteria_folder_name> <archaea_folder_name> ```
+```./driver_script.sh <path_to_root_folder> <bacteria_folder_name> <archaea_folder_name> ```
 
 - `<path_to_root_folder>`: Absolute or relative path to the root data folder.
 - `<bacteria_folder_name>`: Name of the folder containing bacterial data (e.g., `Bacteria Data`).
