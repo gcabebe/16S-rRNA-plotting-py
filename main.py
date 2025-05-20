@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from process_data import process_tables_qiime, process_tables
+from process_data import process_tables_qiime
 from create_venn_diagram import create_venn_diagram
-from taxa_barplot_heatmap import create_taxa_barplot, create_correlation_heatmap
+from taxa_barplot_heatmap import create_taxa_barplot
 from network_plots import create_network_plots
 from boxplots import create_taxa_boxplot, create_alpha_diversity_boxplot
 from pcoa_plots import create_pcoa_plot
