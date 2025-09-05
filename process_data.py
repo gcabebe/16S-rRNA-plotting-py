@@ -4,6 +4,7 @@ import re
 import os
 from pathlib import Path
 import pandas as pd
+import sys
 import numpy as np
 import community.community_louvain as community
 import matplotlib.pyplot as plt
@@ -44,17 +45,15 @@ def process_tables(path):
 
     # Read the ASV table
     asv_df = pd.read_csv(f"{path}/feature-table.tsv", sep='\t', skiprows=1, index_col=0)  # set 1st column as index
-    #     display(asv_df)
 
     # Read the taxa table
     taxa_df = pd.read_csv(f"{path}/taxonomy.tsv", sep='\t', skiprows=[1])
-    #     display(taxa_df)
 
     # Read the metadata table
     metadata_df = pd.read_csv("metadata.tsv", sep='\t')
     metadata_df.rename(columns={metadata_df.columns[0]: "Sample_ID"}, inplace=True)
-    #     display(metadata_df)
 
+    print(f"{asv_df}\n{taxa_df}\n{metadata_df}")
     #################### REFORMAT TAXA TABLE ###################
 
     # Define taxonomy levels
@@ -79,14 +78,14 @@ def process_tables(path):
                 # Find the first valid name to the left
                 for j in range(i + 1, len(cols)):
                     if not pd.isna(row[cols[j]]) and "uncultured" not in str(row[cols[j]]).lower():
-                        row[cols[i]] = row[cols[j]]
+                        row[cols[i]] = f"{cols[j]}_{row[cols[j]]}"
                         break
         return row
 
     # Apply the function to each row
     taxa_df = taxa_df.apply(resolve_uncultured, axis=1)
 
-    #     display(taxa_df)
+    # print(taxa_df)
 
     #################### COMBINE ASV AND TAXA TABLES ###################
 
@@ -222,4 +221,3 @@ def combine_same_asv_groups(asv_data):
         asv_data_combined[new_col] = asv_data[old_cols].sum(axis=1)
 
     return asv_data_combined
-

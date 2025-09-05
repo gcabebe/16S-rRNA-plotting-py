@@ -29,6 +29,7 @@ The following Python 3 libraries are required:
 - networkx
 - markov_clustering
 - rapidfuzz
+- ete3
 
 ---
 

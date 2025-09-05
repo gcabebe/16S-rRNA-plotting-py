@@ -1,7 +1,14 @@
+## 8/7/2025: This code has the following updates:
+### Network topology table now includes counts for positive Bacteria, Archaea, Bacteria-Bacteria, Archaea-Bacteria, and Archaea-Archaea associations
+### NOTE: for unbiased Bacteria-Bacteria, etc. counts, a random sample of n was taken of each Bacteria and Arcahea, and then associations were counted
+
+
 from process_data import select_asv_columns, combine_same_asv_groups, get_genus
 from taxa_barplot_heatmap import create_correlation_heatmap
+import sys
 import os
 from pathlib import Path
+import random
 import pandas as pd
 import numpy as np
 import community.community_louvain as community
@@ -10,6 +17,88 @@ import matplotlib.patches as mpatches
 import matplotlib.colors as mcolors
 from sklearn.preprocessing import MinMaxScaler
 import networkx as nx
+from ete3 import NCBITaxa
+from collections import Counter, defaultdict
+
+
+def convert_to_domain(all_genera):
+
+    ncbi = NCBITaxa()
+
+    # Map genus to domain
+    genus_to_domain = {}
+    for genus in set(all_genera):  # only need to query unique genus names
+        try:
+            taxid = ncbi.get_name_translator([genus])[genus][0]
+            lineage = ncbi.get_lineage(taxid)
+            names = ncbi.get_taxid_translator(lineage)
+            # Get domain from lineage
+            domain = next((names[t] for t in lineage if t in [2, 2157]), "Other")  # 2=Bacteria, 2157=Archaea
+            genus_to_domain[genus] = domain
+        except Exception:
+            genus_to_domain[genus] = "Unknown"
+
+    # Count how many times each domain appears (not deduplicated)
+    domain_list = [genus_to_domain.get(genus, "Unknown") for genus in all_genera]
+    domain_counts = dict(Counter(domain_list))
+
+    return domain_counts
+
+
+def get_domain_counts(upper_triangle, is_positive=True, sample_size=10, seed=42):
+    if is_positive:
+        mask = (upper_triangle > 0)
+    else:
+        mask = (upper_triangle < 0)
+
+    # Get list of (row, col) genus pairs where the condition is True
+    pairs = mask.stack()[lambda x: x].index.tolist()
+
+    # Flatten the genus list from all pairs
+    all_genera = [genus for pair in pairs for genus in pair]
+
+    # Check if names are all in the Bacteria_ or Archaea_ format
+    if all(name.startswith("Bacteria_") or name.startswith("Archaea_") for name in all_genera):
+        # Build a list of unique genera starting with each prefix
+        bacteria_genera = list(set([g for g in all_genera if g.startswith("Bacteria_")]))
+        archaea_genera = list(set([g for g in all_genera if g.startswith("Archaea_")]))
+
+        random.seed(seed)
+        bacteria_sample = random.sample(bacteria_genera, min(sample_size, len(bacteria_genera)))
+        archaea_sample = random.sample(archaea_genera, min(sample_size, len(archaea_genera)))
+
+        sample_results = defaultdict(Counter)
+
+        for genus in bacteria_sample + archaea_sample:
+            # Iterate over all pairs where the genus is involved
+            relevant_pairs = [pair for pair in pairs if genus in pair]
+
+            for g1, g2 in relevant_pairs:
+                # Identify the domain labels
+                dom1 = g1.split("_")[0]
+                dom2 = g2.split("_")[0]
+                # Normalize for symmetry
+                label = "-".join(sorted([dom1, dom2]))
+                sample_results[genus][label] += 1
+
+        counts_all_samples = defaultdict(list)
+
+        for genus, v in sample_results.items():
+            v = dict(v)
+            counts_all_samples['Archaea-Archaea'].append(v.get('Archaea-Archaea', 0))
+            counts_all_samples['Archaea-Bacteria'].append(v.get('Archaea-Bacteria', 0))
+            counts_all_samples['Bacteria-Bacteria'].append(v.get('Bacteria-Bacteria', 0))
+
+        # Then take the mean of each category
+        average_counts = {k: sum(v) / len(v) for k, v in counts_all_samples.items()}
+
+        return average_counts
+
+    else:
+        # Fallback: Use taxonomic resolution via ete3
+        domain_counts = convert_to_domain(all_genera)
+        return domain_counts
+
 
 
 def create_network_plots(path, df_list, with_labels=False):
@@ -38,7 +127,9 @@ def create_network_plots(path, df_list, with_labels=False):
         # At each iteration of the below for loop, add new columns
         topological_feat_df = pd.DataFrame({
             "Topological features": ["Nodes", "Edges", "Positives", "Negatives", "Modularity",
-                                     "Network diameter", "Average degree", "Clustering coefficient"]
+                                     "Network diameter", "Average degree", "Clustering coefficient",
+                                     "Positives - Bacteria", "Positives - Archaea", "Positives - Unknown",
+                                     "Positives - Bacteria-Bacteria", "Positives - Archaea-Bacteria", "Positives - Archaea-Archaea"]
         })
 
         # Create the 3 plots: arusha, else where
@@ -76,10 +167,10 @@ def create_network_plots(path, df_list, with_labels=False):
             # Save the correlation matrix
             if i % 2 == 0:  # name it with 'Genus'
                 cor_matrix.to_csv(
-                    f"{path}/results_data/network_correlation_table_Nextflow_Genus_{safe_metadata_value}.csv", index=True)
+                    f"{path}/results/network_correlation_table_Nextflow_Genus_{safe_metadata_value}.csv", index=True)
             else:  # name it with 'Species'
                 cor_matrix.to_csv(
-                    f"{path}/results_data/network_correlation_table_Nextflow_Species_{safe_metadata_value}.csv",
+                    f"{path}/results/network_correlation_table_Nextflow_Species_{safe_metadata_value}.csv",
                     index=True)
 
             # Create heatmap from correlation table
@@ -118,10 +209,10 @@ def create_network_plots(path, df_list, with_labels=False):
 
             if i % 2 == 0:  # name it with 'Genus'
                 df_combined.to_csv(
-                    f"{path}/results_data/network_centrality_stats_Nextflow_Genus_{safe_metadata_value}.csv", index=False)
+                    f"{path}/results/network_centrality_stats_Nextflow_Genus_{safe_metadata_value}.csv", index=False)
             else:  # name it with 'Species'
                 df_combined.to_csv(
-                    f"{path}/results_data/network_centrality_stats_Nextflow_Species_{safe_metadata_value}.csv",
+                    f"{path}/results/network_centrality_stats_Nextflow_Species_{safe_metadata_value}.csv",
                     index=False)
 
             # -- Obtain global properties of the network --
@@ -154,10 +245,10 @@ def create_network_plots(path, df_list, with_labels=False):
             #             display(global_data_df)
             if i % 2 == 0:  # name it with 'Genus'
                 global_data_df.to_csv(
-                    f"{path}/results_data/network_GlobalProperties_Nextflow_Genus_{safe_metadata_value}.csv")
+                    f"{path}/results/network_GlobalProperties_Nextflow_Genus_{safe_metadata_value}.csv")
             else:  # name it with 'Species'
                 global_data_df.to_csv(
-                    f"{path}/results_data/network_GlobalProperties_Nextflow_Species_{safe_metadata_value}.csv")
+                    f"{path}/results/network_GlobalProperties_Nextflow_Species_{safe_metadata_value}.csv")
 
                 # ----- Obtain topological features of the network -----
             data_num_nodes = G.number_of_nodes()
@@ -166,6 +257,37 @@ def create_network_plots(path, df_list, with_labels=False):
             ## Get positive and negative correlations
             # Extract the upper triangle of the correlation matrix (excluding the diagonal)
             upper_triangle = cor_matrix.where(np.triu(np.ones(cor_matrix.shape), k=1).astype(bool))
+
+            # Rename Genus/Species labels with Domain labels
+            # Get all True (row, col) pairs from upper_triangle
+            positive_domain_counts = get_domain_counts(upper_triangle, is_positive=True)
+
+            # TODO: rework code - Before counting bacteria/archaea associations, take random sample of 100 bacteria
+            try:
+                positive_domain_counts_bacteria = positive_domain_counts['Bacteria']
+            except:
+                positive_domain_counts_bacteria = 0
+            try:
+                positive_domain_counts_archaea = positive_domain_counts['Archaea']
+            except:
+                positive_domain_counts_archaea = 0
+            try:
+                positive_domain_counts_unknown = positive_domain_counts["Positives - Unknown"]
+            except:
+                positive_domain_counts_unknown = 0
+            try:
+                positive_bacteria_bacteria = positive_domain_counts['Bacteria-Bacteria']
+            except:
+                positive_bacteria_bacteria = 0
+            try:
+                positive_archaea_bacteria = positive_domain_counts['Archaea-Bacteria']
+            except:
+                positive_archaea_bacteria = 0
+            try:
+                positive_archaea_archaea = positive_domain_counts['Archaea-Archaea']
+            except:
+                positive_archaea_archaea = 0
+
 
             # Count positive and negative correlations
             data_num_positive = (upper_triangle > 0).sum().sum()
@@ -197,7 +319,9 @@ def create_network_plots(path, df_list, with_labels=False):
 
             # Condense topological data to list
             topolog_data_list = [data_num_nodes, data_num_edges, data_positives_str, data_negatives_str,
-                                 data_modularity, data_diameter, data_avg_degree, data_clustering_coeff]
+                                 data_modularity, data_diameter, data_avg_degree, data_clustering_coeff,
+                                 positive_domain_counts_bacteria, positive_domain_counts_archaea, positive_domain_counts_unknown,
+                                 positive_bacteria_bacteria, positive_archaea_bacteria, positive_archaea_archaea]
 
             # Append column to topological dataframe:
             topological_feat_df[metadata_value] = topolog_data_list
@@ -221,7 +345,7 @@ def create_network_plots(path, df_list, with_labels=False):
             edge_widths = []
 
             for w in edge_weights:
-                if w > 0:  # Positive coxrrelation (Green)
+                if w > 0:  # Positive correlation (Green)
                     edge_colors.append((0, 1, 0, 0.6 + (w * 0.4)))  # 60% to 100% opacity
                     edge_widths.append(1.5 + (w * 2))  # Slightly thicker for strong green edges
                 else:  # Negative correlation (Red)
@@ -322,13 +446,8 @@ def create_network_plots(path, df_list, with_labels=False):
             #                 plt.show()
             plt.close()
 
-        #         display(topological_feat_df)
         # Save the topological dataframe
-        if with_labels:
-            topological_feat_df.to_csv(f"{output_dir}/network_Topology_Nextflow_{taxa_level}_LABELED.csv", index=False)
-        else:
-            topological_feat_df.to_csv(f"{output_dir}/network_Topology_Nextflow_{taxa_level}_UNLABELED.csv",
-                                       index=False)
+        topological_feat_df.to_csv(f"{output_dir}/network_Topology_Nextflow_{taxa_level}.csv", index=False)
 
         i += 1
 

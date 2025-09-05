@@ -125,7 +125,7 @@ def create_taxa_barplot(df_list, path):
             tick.set_fontweight("bold")
         plt.title("Taxa Relative Abundance Across Samples", fontweight='bold')
         plt.tight_layout()
-        plt.savefig(f"{path}/results_data/taxa_barplot_{taxa_level}_reordered.png", bbox_inches="tight", dpi=300)
+        plt.savefig(f"{path}/results/taxa_barplot_{taxa_level}_reordered.png", bbox_inches="tight", dpi=300)
         plt.close()
 
         i += 1
@@ -140,7 +140,7 @@ def create_correlation_heatmap(cor_matrix, taxa_level, metadata_value, path):
     #     heatmap = sns.heatmap(cor_matrix, mask=mask, cmap='RdBu')
 
     #     heatmap.set_title(f'Correlation Heatmap - {metadata_value} on {taxa_level} Level', fontdict={'fontsize':9}, pad=9)
-    # #     plt.savefig(f"{path}/results_data/heatmap_Nextflow_{taxa_level}_{metadata_value}.png", bbox_inches="tight", dpi=300)
+    # #     plt.savefig(f"{path}/results/heatmap_Nextflow_{taxa_level}_{metadata_value}.png", bbox_inches="tight", dpi=300)
     #     plt.show()
     #     plt.close()
 
@@ -148,5 +148,5 @@ def create_correlation_heatmap(cor_matrix, taxa_level, metadata_value, path):
     Path(f"{path}/results").mkdir(parents=True, exist_ok=True)
 
     clustermap = sns.clustermap(cor_matrix, method="complete", cmap='RdBu', annot_kws={"size": 5}, figsize=(15, 12))
-    plt.savefig(f"{path}/results_data/clustermap_Nextflow_{taxa_level}_{safe_metadata_value}.png", bbox_inches="tight",
+    plt.savefig(f"{path}/results/clustermap_Nextflow_{taxa_level}_{safe_metadata_value}.png", bbox_inches="tight",
                 dpi=300)
