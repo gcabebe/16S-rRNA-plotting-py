@@ -50,4 +50,4 @@ for path in path_list:
 
 
 # EXAMPLE COMMAND LINE
-# ./driver_script.sh C:/Users/gebeb/Desktop/Research/16S_rRNA/RM_nextflow Nextflow_Ba Nextflow_Ar
+# ./driver_script.sh ./16S_rRNA/RM_nextflow Nextflow_Ba Nextflow_Ar
