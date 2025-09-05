@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> Check back later for a link to the manuscript!
+
 # Summary
 This repository provides an executable script for generating visualizations from processed amplicon data extracted from bacteria and archaea. Visualizations will analyze each bacteria and archaea in isolation, as well as the interactions between the two.
 
