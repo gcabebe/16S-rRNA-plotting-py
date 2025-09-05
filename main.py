@@ -29,21 +29,21 @@ for path in path_list:
     Path(f"{path}/results_unprocessed_asv").mkdir(parents=True, exist_ok=True)
 
     ### Process tables ###
-    df_list = process_data.process_tables(path)
-    # df_list = process_data.process_tables_qiime(path)
+    # df_list = process_data.process_tables(path)
+    df_list = process_data.process_tables_qiime(path)
 
     ### Create plots ###
-    # create_venn_diagram(path)
-    # sys.stdout.flush()  # So print statements show up while code is running
-    # create_taxa_barplot(df_list, path)
-    # sys.stdout.flush()
+    create_venn_diagram(path)
+    sys.stdout.flush()  # So print statements show up while code is running
+    create_taxa_barplot(df_list, path)
+    sys.stdout.flush()
     create_network_plots(path, df_list, with_labels=True)
     sys.stdout.flush()
-    # create_taxa_boxplot(path, df_list)
-    # sys.stdout.flush()
-    # create_alpha_diversity_boxplot(path)
-    # sys.stdout.flush()
-    # create_pcoa_plot(path, df_list)
+    create_taxa_boxplot(path, df_list)
+    sys.stdout.flush()
+    create_alpha_diversity_boxplot(path)
+    sys.stdout.flush()
+    create_pcoa_plot(path, df_list)
 
     ## Create plots for Bacteria + Archaea analyses ##
     combined_analysis.create_Ba_Ar_networks(path_list[0], path_list[1], with_labels=True)
